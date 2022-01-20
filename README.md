@@ -1,27 +1,31 @@
-# AngularOutputEventIssue
+# Bug report
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 13.1.4.
+### Description
+When you type an Angular `@Output()` event emitter with a generic type - like `@Output() onClick: EventEmitter<Event> = new EventEmitter<Event>();` - then this output event will throw an error when the Storybook action is dispatched: `ERROR TypeError: ctx.onClick is not a function`
 
-## Development server
+This seems to be related to the generic type of the `EventEmitter`, for example:
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+```ts
+/** Omitting the type => will work */
+@Output() onClick = new EventEmitter<Event>();
 
-## Code scaffolding
+/** Ignoring the generic type => will work */
+// @ts-ignore
+@Output() onClickWithType: EventEmitter = new EventEmitter<Event>();
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+/** Using a generic type => will throw error */
+@Output() onClickWithGenericType: EventEmitter<Event> = new EventEmitter<Event>();
+```
 
-## Build
+### How to reproduce
+Just run the following command:
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+```shell
+yarn && yarn storybook
+```
 
-## Running unit tests
+and then go to the Story for the button: http://localhost:6006/?path=/story/example-button--primary
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+Clicking the first 2 buttons will show an output in the "Actions" tab, but the last button will throw an error in the console:
 
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+![Error](error-screenshot.png)
